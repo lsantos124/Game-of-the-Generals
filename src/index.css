@@ -11,6 +11,22 @@ div {
   padding-left: 30px;
 }
 
+.player1 {
+  color: #00008b;
+}
+
+.player1-hide {
+  background: #00008b;
+}
+
+.player2 {
+  color: #ff0000;
+}
+
+.player2-hide {
+  background: #ff0000;
+}
+
 .board-row:after {
   clear: both;
   content: "";
@@ -22,7 +38,6 @@ div {
 }
 
 .square-normal {
-  background: #fff;
   border: 1px solid #999;
   float: left;
   font-size: 24px;
@@ -37,8 +52,7 @@ div {
 }
 
 .square-adjacent {
-  background: #ffff00;
-  border: 1px solid #999;
+  border: 1px solid #ffff00;
   float: left;
   font-size: 24px;
   font-weight: bold;
