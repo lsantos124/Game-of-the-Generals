@@ -2,6 +2,41 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 
+import fiveStarGeneral from './pieces/five-star-general.png'
+import fourStarGeneral from './pieces/four-star-general.png'
+import threeStarGeneral from './pieces/three-star-general.png'
+import twoStarGeneral from './pieces/two-star-general.png'
+import oneStarGeneral from './pieces/one-star-general.png'
+import captain from './pieces/captain.png'
+import colonel from './pieces/captain.png'
+import hidden from './pieces/hidden.png'
+import lieutenantColonel from './pieces/lieutenant colonel.png'
+import privateP from './pieces/private.png'
+import spy from './pieces/spy.png'
+import major from './pieces/major.png'
+import sergeant from './pieces/sergeant.png'
+import firstLieutenant from './pieces/first-lieutenant.png'
+import secondLieutenant from './pieces/second-lieutenant.png'
+import flag from './pieces/flag.png'
+
+const pieceImage = {
+  "SP" : spy,
+  "5S" : fiveStarGeneral,
+  "4S" : fourStarGeneral,
+  "3S" : threeStarGeneral,
+  "2S" : twoStarGeneral,
+  "1S" : oneStarGeneral,
+  "C" : colonel,
+  "LC" : lieutenantColonel,
+  "M" : major,
+  "CA" : captain,
+  "1L" : firstLieutenant,
+  "2L" : secondLieutenant,
+  "S" : sergeant,
+  "P" : privateP,
+  "F" : flag
+}
+
 function Square(props) {
   let classes = "";
 
@@ -12,26 +47,36 @@ function Square(props) {
     classes += "square-normal";
   }
 
+  let background = pieceImage[props.value];
+  let imgClass = "";
+
   if (props.value) {
     if (props.player == "1") {
-      classes += " player1";
+      classes += " player1-background";
+      imgClass = "player1-background";
 
       if (props.currPlayer == "2") {
-        classes += " player1-hide";
+        //classes += " player1-hide";
+        background = hidden;
       }
     }
     else if (props.player == "2") { // player 2
-      classes += " player2";
+      classes += " player2-background";
+      imgClass = "player2-background";
 
       if (props.currPlayer == "1"){
-        classes += " player2-hide";
+        //classes += " player2-hide";
+        background = hidden;
       }
+    }
+    else if (props.player == "wait") {
+      background = hidden;
     }
   }
 
   return (
     <button className={classes} onClick={props.onClick}>
-      {props.value}
+      <img className={imgClass} src={background}/>
     </button>
   );
 }
@@ -236,6 +281,7 @@ class Game extends React.Component {
     const currPhase = current.phase;
 
     //alert(this.state.p1PiecesToPlace[0]);
+    
     if (this.state.phase == "player1") {
       if (row > 4) {
         var player1pieces = this.state.p1PiecesToPlace;
@@ -489,6 +535,7 @@ const pieces = {
   "P" : 1,
   "F" : 0
 }
+
 
 function calculateWinner(squares) {
   const lines = [
