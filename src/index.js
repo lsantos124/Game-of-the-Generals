@@ -52,24 +52,23 @@ function Square(props) {
 
   if (props.value) {
     if (props.player == "1") {
-      classes += " player1-background";
+      //classes += " player1-background";
       imgClass = "player1-background";
 
       if (props.currPlayer == "2") {
-        //classes += " player1-hide";
         background = hidden;
       }
     }
-    else if (props.player == "2") { // player 2
-      classes += " player2-background";
+    else if (props.player == "2") { 
+      //classes += " player2-background";
       imgClass = "player2-background";
 
       if (props.currPlayer == "1"){
-        //classes += " player2-hide";
         background = hidden;
       }
     }
-    else if (props.player == "wait") {
+    
+    if (props.currPlayer == "wait1" || props.currPlayer == "wait2") {
       background = hidden;
     }
   }
@@ -149,22 +148,10 @@ class Game extends React.Component {
       turn: "1",
       selected: null,
       possibleMoves: Array(4).fill(null),
-      phase: "player1",
+      phase: "player1_setup",
       p1PiecesToPlace: p1Pieces,
       p2PiecesToPlace: p2Pieces,
     }
-
-    //alert("constructor");
-    this.printState();
-  }
-
-  // Function used for debugging state
-  printState() {
-    //alert("Current State: " + this.state.phase);
-    //alert(this.state.p1PiecesToPlace);
-    //alert(this.state.squares);
-    //alert(this.state.selected);
-    //alert(this.state.possibleMoves);
   }
 
   randomize() {
@@ -172,7 +159,7 @@ class Game extends React.Component {
     const squares = current.squares.slice();
     const playerPositions = current.playerPositions.slice();
     
-    if (this.state.phase == "player1") {
+    if (this.state.phase == "player1_setup") {
       var pieces = ["5S", "4S", "3S", "2S", "1S", "C", "LC", 
                     "M", "CA", "1L", "2L", "S", "F", "SP", "SP",
                     "P", "P", "P", "P", "P", "P"]
@@ -198,10 +185,10 @@ class Game extends React.Component {
         squares: squares,
         playerPositions: playerPositions,
         p1PiecesToPlace: [],
-        phase: "player2",
+        phase: "player2_setup",
       });
     }
-    else if (this.state.phase == "player2") {
+    else if (this.state.phase == "player2_setup") {
       var pieces = ["5S", "4S", "3S", "2S", "1S", "C", "LC", 
                     "M", "CA", "1L", "2L", "S", "F", "SP", "SP",
                     "P", "P", "P", "P", "P", "P"]
@@ -215,7 +202,6 @@ class Game extends React.Component {
         }
       }
 
-      alert(squares);
       for (let i = 0; i < positions.length; i++) {
         if (positions[i] != null) {
           squares[i] = positions[i];
@@ -224,7 +210,7 @@ class Game extends React.Component {
       }
 
       this.setState({
-        turn: "1",
+        turn: "wait1",
         squares: squares,
         playerPositions: playerPositions,
         p2PiecesToPlace: [],
@@ -234,9 +220,6 @@ class Game extends React.Component {
   }
 
   getAdjacentPositions(i) {
-    //alert("adjacent");
-    this.printState();
-
     const adjacentPos = Array(4).fill(null);
 
     const current = this.state;
@@ -267,10 +250,6 @@ class Game extends React.Component {
   }
 
   handleClick(i) {
-    //alert(this.state.p1piecesToPlace);
-    //alert("handleclick");
-    this.printState();
-
     const row = Math.floor(i / 9);
     const col = i % 9;
 
@@ -278,11 +257,10 @@ class Game extends React.Component {
     const squares = current.squares.slice();
     const playerPositions = current.playerPositions.slice();
     var currTurn = current.turn;
-    const currPhase = current.phase;
+    var currPhase = current.phase;
 
-    //alert(this.state.p1PiecesToPlace[0]);
-    
-    if (this.state.phase == "player1") {
+    // player 1 set up phase
+    if (this.state.phase == "player1_setup") {
       if (row > 4) {
         var player1pieces = this.state.p1PiecesToPlace;
         // Condition 1: clicked empty tile, place piece
@@ -307,17 +285,16 @@ class Game extends React.Component {
         else { // all pieces placed
           this.setState({
             turn: "2",
-            phase: "player2",
+            phase: "player2_setup",
           });
-          alert("done player1")
         }
       }
       else {
         alert("Cannot place there");
       }
     }
-    else if (this.state.phase == "player2") {
-      alert("player2");
+    // player 2 set up phase
+    else if (this.state.phase == "player2_setup") {
       if (row < 3) {
         var player2pieces = current.p2PiecesToPlace;
 
@@ -342,7 +319,7 @@ class Game extends React.Component {
         }
         else { // all pieces placed
           this.setState({
-            turn: "1",
+            turn: "wait1",
             phase: "game",
           });
         }
@@ -351,115 +328,131 @@ class Game extends React.Component {
         alert("Cannot place there");
       }
     }
+    // in game
     else if (this.state.phase == "game") { // in game
-      let adjacent = false;
-      if (this.state.possibleMoves.includes(i))
-        adjacent = true;
+      if (this.state.turn == "wait1"){
+        this.setState({
+          turn: "1"
+        });
+      }
+      else if (this.state.turn == "wait2"){
+        this.setState({
+          turn: "2"
+        })
+      }
+      else{
+        let adjacent = false;
+        if (this.state.possibleMoves.includes(i))
+          adjacent = true;
 
-      // check if user clicked a high-lighted adjacent tile
-      if (adjacent){
-        if (squares[i] == null){ // empty tile
-          squares[i] = squares[current.selected];
-          playerPositions[i] = playerPositions[current.selected];
-          squares[current.selected] = null;
-          playerPositions[current.selected] = null;
-
-          this.setState({
-              squares: squares,
-              turn: (current.turn == "1" ? "2" : "1"),
-              selected: null,
-              possibleMoves: Array(4).fill(null),
-              playerPositions: playerPositions,
-            });
-        }
-        else if (playerPositions[i] == playerPositions[current.selected]){ // picked one of own pieces
-          this.setState({
-            squares: squares,
-            selected: null,
-            possibleMoves: Array(4).fill(null),
-          });
-        }
-        else { // challenge
-          // special handling for spies to see if current piece is a spy
-          if (squares[current.selected] == "SP" && squares[i] == "P"){
-            squares[current.selected] = null;
-            playerPositions[current.selected] = null;
-
-            currTurn = (currTurn == "1" ? "2" : "1");
-          }
-          else if (squares[current.selected] == "P" && squares[i] == "SP"){
+        // check if user clicked a high-lighted adjacent tile
+        if (adjacent){
+          if (squares[i] == null){ // empty tile
             squares[i] = squares[current.selected];
             playerPositions[i] = playerPositions[current.selected];
             squares[current.selected] = null;
             playerPositions[current.selected] = null;
 
-            currTurn = (currTurn == "1" ? "2" : "1");
+            this.setState({
+                squares: squares,
+                turn: (current.turn == "1" ? "wait2" : "wait1"),
+                selected: null,
+                possibleMoves: Array(4).fill(null),
+                playerPositions: playerPositions,
+              });
           }
-          else { // normal
-            if (squares[i] == "F") {
-              if (squares[current.selected] == "F") { // tie
-                currTurn = "tie";
-              }
-              currPhase = "end";
+          else if (playerPositions[i] == playerPositions[current.selected]){ // picked one of own pieces
+            this.setState({
+              squares: squares,
+              selected: null,
+              possibleMoves: Array(4).fill(null),
+            });
+          }
+          else { // challenge
+            // special handling for spies to see if current piece is a spy
+            if (squares[current.selected] == "SP" && squares[i] == "P"){
+              squares[current.selected] = null;
+              playerPositions[current.selected] = null;
+
+              currTurn = (currTurn == "1" ? "wait2" : "wait1");
             }
-
-            if (currTurn != "tie") {
-              currTurn = (currTurn == "1" ? "2" : "1");
-            }
-
-            var diff = pieces[squares[current.selected]] - pieces[squares[i]];
-
-            if (diff > 0) { // piece won
+            else if (squares[current.selected] == "P" && squares[i] == "SP"){
               squares[i] = squares[current.selected];
               playerPositions[i] = playerPositions[current.selected];
               squares[current.selected] = null;
               playerPositions[current.selected] = null;
+
+              currTurn = (currTurn == "1" ? "wait2" : "wait1");
             }
-            else if (diff < 0) { // other piece won
-              squares[current.selected] = null;
-              playerPositions[current.selected] = null;
+            else { // normal
+              if (squares[i] == "F") {
+                if (squares[current.selected] == "F") { // tie
+                  currTurn = "tie";
+                }
+                currPhase = "end";
+              }
+
+              if (squares[current.selected] == "F") {
+                currPhase = "end";
+              }
+
+              if (currTurn != "tie") {
+                currTurn = (currTurn == "1" ? "wait2" : "wait1");
+              }
+
+              var diff = pieces[squares[current.selected]] - pieces[squares[i]];
+
+              if (diff > 0) { // piece won
+                squares[i] = squares[current.selected];
+                playerPositions[i] = playerPositions[current.selected];
+                squares[current.selected] = null;
+                playerPositions[current.selected] = null;
+              }
+              else if (diff < 0) { // other piece won
+                squares[current.selected] = null;
+                playerPositions[current.selected] = null;
+              }
+              else { // tie - both die
+                squares[current.selected] = null;
+                playerPositions[current.selected] = null;
+                squares[i] = null;
+                playerPositions[i] = null;
+              }
             }
-            else { // tie - both die
-              squares[current.selected] = null;
-              playerPositions[current.selected] = null;
-              squares[i] = null;
-              playerPositions[i] = null;
-            }
+
+            this.setState({
+              squares: squares,
+              turn: currTurn,
+              phase: currPhase,
+              selected: null,
+              possibleMoves: Array(4).fill(null),
+              playerPositions: playerPositions,
+            });
           }
-
-          this.setState({
-            squares: squares,
-            turn: currTurn,
-            phase: currPhase,
-            selected: null,
-            possibleMoves: Array(4).fill(null),
-            playerPositions: playerPositions,
-          });
         }
-      }
-      else{
-        // User clicked piece to move
-        if (current.selected == null && current.squares[i] != null && playerPositions[i] == current.turn){
-          const adjacentPositions = this.getAdjacentPositions(i);
-          //alert(adjacentPositions);
+        else{
+          // User clicked piece to move
+          if (current.selected == null && current.squares[i] != null && playerPositions[i] == current.turn){
+            const adjacentPositions = this.getAdjacentPositions(i);
 
-          this.setState({
-            squares: squares,
-            selected: i,
-            possibleMoves: adjacentPositions,
-          });
+            this.setState({
+              squares: squares,
+              selected: i,
+              possibleMoves: adjacentPositions,
+            });
+          }
+          // user clicked empty tile
+          else {
+            this.setState({
+              squares: squares,
+              selected: null,
+              possibleMoves: Array(4).fill(null),
+            });
+          } 
         }
-        // user clicked empty tile
-        else {
-          this.setState({
-            squares: squares,
-            selected: null,
-            possibleMoves: Array(4).fill(null),
-          });
-        } 
       }
     }
-    else { //
+    else { 
       alert("Game is Over");
     }
   }
@@ -467,22 +460,31 @@ class Game extends React.Component {
   render() {
     let status;
     if (this.state.phase == "end") {
-      status = "Winner: " + this.state.turn;
+      status = "Winner: " + (this.state.turn == "wait1" ? "Player 1" : "Player 2");
     }
     else {
-      status = "Current Turn: Player " + this.state.turn;
+      if (this.state.turn == "wait1"){
+        status = "Click anywhere on the board to begin Player 1's turn"
+      }
+      else if (this.state.turn == "wait2"){
+        status = "Click anywhere on the board to begin Player 2's turn"
+      }
+      else {
+        status = "Current Turn: Player " + this.state.turn;
+      }
     }
 
     let piecesToPlace = [];
-    if (this.state.phase == "player1"){
+    let setup = false;
+    if (this.state.phase == "player1_setup"){
       piecesToPlace = this.state.p1PiecesToPlace;
+      setup = true;
     }
-    else if (this.state.phase == "player2"){
+    else if (this.state.phase == "player2_setup"){
       piecesToPlace = this.state.p2PiecesToPlace;
+      setup = true;
     }
 
-    //alert("phase " + this.state.phase);
-    // check if still in set up phase
     return (
       <div className="game">
         <div className="game-board">
@@ -495,7 +497,7 @@ class Game extends React.Component {
             player={this.state.turn}
           />
         </div>
-        <div>
+        <div class={setup ? '' : 'hidden'}>
           <div>
             Current Piece:{this.state.p1PiecesToPlace[0]}
           </div>

@@ -65,7 +65,7 @@ div {
   width: 70px;
 }
 
-.square:focus {
+.square-normal:focus {
   outline: none;
 }
 
@@ -81,5 +81,9 @@ div {
 
 .game-info {
   margin-left: 20px;
+}
+
+.hidden {
+  display: none;
 }
 
